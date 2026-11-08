@@ -1,0 +1,52 @@
+{
+  "_הסבר": {
+    "watchlist": "רשימת המניות שהבוט רשאי לסחור בהן. הוא לא יקנה שום מניה אחרת.",
+    "max_total_capital_usd": "התקרה: כמה דולר הבוט יכול להחזיק במניות בסך הכול.",
+    "max_position_usd": "כמה דולר מקסימום לעסקה אחת.",
+    "max_open_positions": "כמה מניות שונות מקסימום מחזיקים בבת אחת.",
+    "stop_loss_pct": "סטופ-לוס: אם המניה יורדת באחוז הזה ממחיר הקנייה, היא נמכרת אוטומטית.",
+    "take_profit_pct": "טייק-פרופיט: אם המניה עולה באחוז הזה, היא נמכרת ברווח אוטומטית.",
+    "daily_max_loss_usd": "הפסד יומי מקסימלי. אם מגיעים אליו, הבוט סוגר הכול ועוצר עד מחר.",
+    "max_new_trades_per_day": "כמה עסקאות חדשות מקסימום ביום.",
+    "buy_sentiment_threshold": "כמה חיובית החדשה צריכה להיות כדי לקנות (0 עד 1).",
+    "min_confidence": "כמה ה-AI צריך להיות בטוח כדי שנפעל (0 עד 1).",
+    "exit_sentiment_threshold": "אם חדשות על מניה שמחזיקים שליליות מהערך הזה, יוצאים מוקדם (0 עד 1-).",
+    "news_lookback_minutes": "כמה דקות אחורה לחפש כותרות.",
+    "max_headlines_per_symbol": "כמה כותרות לכל מניה שולחים ל-AI.",
+    "no_new_trades_first_minutes": "לא קונים בדקות הראשונות אחרי פתיחת השוק (תנודתיות גבוהה).",
+    "no_new_trades_last_minutes": "לא קונים כשנשארו פחות מהדקות האלה לסגירה.",
+    "flatten_minutes_before_close": "כמה דקות לפני הסגירה סוגרים הכול (לא מחזיקים מניות ללילה).",
+    "new_trades_enabled": "false = הבוט לא פותח עסקאות חדשות, רק מנהל את הקיימות.",
+    "close_everything_now": "מתג חירום: true = סוגר את כל הפוזיציות בהרצה הבאה ולא פותח חדשות.",
+    "dry_run": "true = הבוט רק כותב מה היה עושה, בלי לשלוח פקודות.",
+    "gemini_model": "שם מודל ה-AI של Google. אם הוא לא קיים, הבוט מנסה אוטומטית מודלים אחרים."
+  },
+
+  "watchlist": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD", "NFLX", "JPM"],
+
+  "max_total_capital_usd": 1000,
+  "max_position_usd": 250,
+  "max_open_positions": 4,
+
+  "stop_loss_pct": 1.5,
+  "take_profit_pct": 3.0,
+  "daily_max_loss_usd": 50,
+  "max_new_trades_per_day": 6,
+
+  "buy_sentiment_threshold": 0.6,
+  "min_confidence": 0.7,
+  "exit_sentiment_threshold": -0.3,
+
+  "news_lookback_minutes": 120,
+  "max_headlines_per_symbol": 8,
+
+  "no_new_trades_first_minutes": 15,
+  "no_new_trades_last_minutes": 60,
+  "flatten_minutes_before_close": 30,
+
+  "new_trades_enabled": true,
+  "close_everything_now": false,
+  "dry_run": false,
+
+  "gemini_model": "gemini-3.8-flash"
+}
