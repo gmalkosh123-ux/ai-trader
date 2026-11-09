@@ -114,6 +114,14 @@ class NotifierTests(unittest.TestCase):
         n.send(["a"], "h")
         self.assertTrue(n.session.posts[0][0].endswith("/issues/3/comments"))
 
+    def test_find_issue_never_posts(self):
+        n = reporting.GitHubNotifier("tok", "me/repo", "me")
+        n.session = FakeSession([])
+        self.assertIsNone(n.find_issue())
+        n.session = FakeSession([{"title": reporting.ALERTS_TITLE, "number": 3}])
+        self.assertEqual(n.find_issue(), 3)
+        self.assertEqual(n.session.posts, [])
+
     def test_disabled_without_token(self):
         n = reporting.GitHubNotifier(None, None, None)
         self.assertFalse(n.send(["a"], "h"))

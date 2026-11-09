@@ -61,7 +61,8 @@ class GitHubNotifier:
     def _url(self, path: str) -> str:
         return f"https://api.github.com/repos/{self.repo}{path}"
 
-    def _issue_number(self) -> int:
+    def find_issue(self) -> int | None:
+        """מחפש את ה-Issue של ההתראות בלי ליצור אותו ובלי לשלוח מייל."""
         if self._issue:
             return self._issue
         r = self.session.get(self._url("/issues"), params={"state": "open", "per_page": 100}, timeout=20)
@@ -70,6 +71,11 @@ class GitHubNotifier:
             if issue.get("title") == ALERTS_TITLE and "pull_request" not in issue:
                 self._issue = issue["number"]
                 return self._issue
+        return None
+
+    def _issue_number(self) -> int:
+        if self.find_issue():
+            return self._issue
         body = ("כאן הבוט כותב סיכום אחד בסוף כל יום מסחר שהיו בו עסקאות.\n\n"
                 "GitHub שולח לך מייל אחד על כל סיכום. אפשר להשתיק דרך כפתור Unsubscribe.\n\n"
                 "המסחר הוא בחשבון דמו בלבד.")

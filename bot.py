@@ -818,9 +818,11 @@ def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, no
     ok = True
     if notifier is not None and notifier.enabled:
         try:
-            notifier.send(["✅ בדיקת החיבור עברה. מכאן יגיעו לכאן כל הקניות, המכירות והסיכום היומי."],
-                          "🤖 הבוט מחובר")
-            journal.say("✅ התראות GitHub עובדות. תקבל מייל והתראה באפליקציה.")
+            if notifier.find_issue():  # כבר עובד — לא שולחים עוד מייל בדיקה
+                journal.say("✅ התראות GitHub מוכנות (בלי מייל בדיקה נוסף).")
+            else:
+                notifier.send(["✅ בדיקת החיבור עברה. מכאן יגיע הסיכום היומי."], "🤖 הבוט מחובר")
+                journal.say("✅ התראות GitHub עובדות. תקבל מייל והתראה באפליקציה.")
         except Exception as e:
             journal.say(f"⚠️ התראות GitHub לא עבדו: {str(e)[:150]}")
     try:
