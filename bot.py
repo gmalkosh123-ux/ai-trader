@@ -289,6 +289,10 @@ class Alpaca:
                 break
         return items
 
+    def portfolio_history(self, period: str = "1M") -> dict:
+        return self.http.request("GET", f"{PAPER_TRADING_URL}/v2/account/portfolio/history",
+                                 params={"period": period, "timeframe": "1D"}) or {}
+
     def latest_prices(self, symbols: list[str]) -> dict[str, float]:
         if not symbols:
             return {}
@@ -696,7 +700,7 @@ def build_state(alpaca: Alpaca, account: dict, clock: dict) -> MarketState:
 # ---------------------------------------------------------------------------
 # הרצה אחת
 # ---------------------------------------------------------------------------
-def run_once(cfg: dict, alpaca: Alpaca, classifier, journal: Journal) -> int:
+def run_once(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, reporter=None) -> int:
     account = alpaca.account()
     clock = alpaca.clock()
     if not clock.get("is_open"):
@@ -716,6 +720,17 @@ def run_once(cfg: dict, alpaca: Alpaca, classifier, journal: Journal) -> int:
     journal.say(f"שווי חשבון: {usd(state.equity)} | רווח/הפסד היום: {usd(state.daily_pl)} | "
                 f"בשימוש הבוט: {usd(state.exposure)} מתוך {usd(cfg['max_total_capital_usd'])}")
 
+    code = _trade(cfg, alpaca, classifier, journal, state)
+    if reporter is not None:
+        try:  # דף מצב והתראות. תקלה כאן לא משפיעה על המסחר.
+            reporter.after_run(cfg, state)
+        except Exception as e:
+            journal.log("report_error", error=str(e)[:300])
+            journal.say(f"⚠️ עדכון דף המצב או ההתראות נכשל: {str(e)[:120]}")
+    return code
+
+
+def _trade(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, state: MarketState) -> int:
     # 1. חוקי חירום וסוף יום
     pre = pre_checks(state, cfg)
     if pre:
@@ -791,9 +806,16 @@ def run_once(cfg: dict, alpaca: Alpaca, classifier, journal: Journal) -> int:
     return 0
 
 
-def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal) -> int:
+def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, notifier=None) -> int:
     """בדיקת חיבור — לא סוחרת. מריצים אותה פעם ראשונה כדי לוודא שהמפתחות עובדים."""
     ok = True
+    if notifier is not None and notifier.enabled:
+        try:
+            notifier.send(["✅ בדיקת החיבור עברה. מכאן יגיעו לכאן כל הקניות, המכירות והסיכום היומי."],
+                          "🤖 הבוט מחובר")
+            journal.say("✅ התראות GitHub עובדות. תקבל מייל והתראה באפליקציה.")
+        except Exception as e:
+            journal.say(f"⚠️ התראות GitHub לא עבדו: {str(e)[:150]}")
     try:
         a = alpaca.account()
         journal.say(f"✅ Alpaca (דמו) מחובר. מספר חשבון: {a.get('account_number')}, סטטוס: {a.get('status')}, "
@@ -844,10 +866,13 @@ def main(argv: list[str] | None = None) -> int:
 
     alpaca = Alpaca(os.environ["ALPACA_API_KEY"], os.environ["ALPACA_SECRET_KEY"], journal, dry_run=cfg["dry_run"])
     classifier = Gemini(os.environ["GEMINI_API_KEY"], cfg["gemini_model"])
+    import reporting
+    notifier = reporting.GitHubNotifier.from_env()
     try:
         if args.check:
-            return check_connection(cfg, alpaca, classifier, journal)
-        return run_once(cfg, alpaca, classifier, journal)
+            return check_connection(cfg, alpaca, classifier, journal, notifier)
+        reporter = reporting.Reporter(alpaca, journal, notifier, ROOT)
+        return run_once(cfg, alpaca, classifier, journal, reporter)
     except ApiError as e:
         journal.log("error", error=str(e)[:500])
         journal.say(f"❌ תקלה בתקשורת עם Alpaca: {str(e)[:200]}. הסטופים אצל הברוקר ממשיכים לפעול.")

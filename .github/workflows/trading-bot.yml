@@ -15,7 +15,8 @@ on:
         default: check
 
 permissions:
-  contents: write   # כדי לשמור את יומן המסחר בתיקייה journal/
+  contents: write   # כדי לשמור את יומן המסחר ואת דף המצב
+  issues: write     # כדי לכתוב התראות ב-Issue "התראות בוט המסחר"
 
 concurrency:
   group: trading-bot
@@ -40,6 +41,7 @@ jobs:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
           MODE: ${{ inputs.mode }}
         run: |
           if [ "$MODE" = "check" ]; then
@@ -51,10 +53,10 @@ jobs:
       - name: Save journal
         if: always()
         run: |
-          if [ -n "$(git status --porcelain journal 2>/dev/null)" ]; then
+          if [ -n "$(git status --porcelain journal STATUS.md 2>/dev/null)" ]; then
             git config user.name "trading-bot"
             git config user.email "trading-bot@users.noreply.github.com"
-            git add journal
+            git add journal STATUS.md 2>/dev/null || git add journal
             git commit -m "journal: $(date -u '+%Y-%m-%d %H:%M') UTC"
             git pull --rebase --autostash || true
             git push || echo "could not push journal"
