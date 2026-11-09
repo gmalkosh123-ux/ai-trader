@@ -839,7 +839,8 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         journal.say(f"❌ חסרים סודות (Secrets) ב-GitHub: {', '.join(missing)}")
         journal.flush_summary()
-        return 2
+        # בהרצה מתוזמנת לא נכשלים, כדי לא להציף אותך במיילים לפני שהגדרת את המפתחות
+        return 2 if args.check else 0
 
     alpaca = Alpaca(os.environ["ALPACA_API_KEY"], os.environ["ALPACA_SECRET_KEY"], journal, dry_run=cfg["dry_run"])
     classifier = Gemini(os.environ["GEMINI_API_KEY"], cfg["gemini_model"])
