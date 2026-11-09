@@ -161,29 +161,37 @@ class ReporterTests(unittest.TestCase):
         return bot.MarketState(now=datetime(2026, 11, 9, 12, 0, tzinfo=ET), minutes_since_open=150,
                                minutes_to_close=minutes_to_close, equity=100_006, last_equity=100_000, cash=100_000)
 
-    def test_exit_reported_once_and_status_written(self):
+    def test_no_email_during_the_day_and_exit_recorded_once(self):
         n = FakeNotifier()
         r = reporting.Reporter(FakeAlpaca([BUY, TP]), self.journal, n, self.root)
         cfg = dict(bot.DEFAULT_CONFIG)
         r.after_run(cfg, self.state())
         r.after_run(cfg, self.state())
-        self.assertEqual(len(n.sent), 1)
-        self.assertIn("טייק-פרופיט", n.sent[0][0])
+        self.assertEqual(n.sent, [])  # אין מייל באמצע היום
         self.assertTrue((self.root / "STATUS.md").exists())
         saved = json.loads((self.root / "journal" / "state.json").read_text(encoding="utf-8"))
         self.assertEqual(saved["notified_orders"], ["s1"])
+        self.assertEqual(sum("טייק-פרופיט" in e for e in saved["events"]), 1)
 
-    def test_summary_only_at_end_of_day_when_flat(self):
+    def test_one_summary_at_end_of_day_when_flat(self):
         n = FakeNotifier()
         cfg = dict(bot.DEFAULT_CONFIG)
         open_pos = [{"symbol": "AAPL", "qty": "2", "market_value": "410", "unrealized_pl": "10"}]
         reporting.Reporter(FakeAlpaca([BUY], open_pos), self.journal, n, self.root).after_run(cfg, self.state(20))
-        self.assertFalse(any("סיכום" in l for lines in n.sent for l in lines))
+        self.assertEqual(n.sent, [])  # עדיין יש פוזיציה פתוחה
         r = reporting.Reporter(FakeAlpaca([BUY, TP]), self.journal, n, self.root)
         r.after_run(cfg, self.state(15))
         r.after_run(cfg, self.state(5))
-        summaries = [l for lines in n.sent for l in lines if "סיכום" in l]
-        self.assertEqual(len(summaries), 1)
+        self.assertEqual(len(n.sent), 1)
+        text = "\n".join(n.sent[0])
+        self.assertIn("ברווח: 1", text)
+        self.assertIn("טייק-פרופיט", text)
+
+    def test_quiet_day_sends_nothing(self):
+        n = FakeNotifier()
+        r = reporting.Reporter(FakeAlpaca([]), self.journal, n, self.root)
+        r.after_run(dict(bot.DEFAULT_CONFIG), self.state(10))
+        self.assertEqual(n.sent, [])
 
     def test_run_once_survives_reporter_failure(self):
         class Boom:

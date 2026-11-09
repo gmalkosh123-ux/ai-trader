@@ -2,8 +2,8 @@
 דיווח: דף מצב (STATUS.md) והתראות דרך GitHub, במקום טלגרם.
 
 - דף המצב מתעדכן בכל הרצה בזמן שהשוק פתוח: שווי, רווח/הפסד, פוזיציות, עסקאות היום ו-30 הימים האחרונים.
-- ההתראות נכתבות כתגובות ב-Issue קבוע בריפו, עם תיוג שלך.
-  GitHub שולח עליהן מייל והתראה באפליקציה, בלי שום אפליקציה נוספת.
+- התראה אחת בלבד ביום: סיכום בסוף יום המסחר, כתגובה ב-Issue קבוע בריפו, עם תיוג שלך.
+  ביום בלי עסקאות לא נשלח כלום. כל השאר מופיע ב-STATUS.md.
 - תקלה בדיווח לעולם לא עוצרת את המסחר.
 """
 from __future__ import annotations
@@ -70,8 +70,8 @@ class GitHubNotifier:
             if issue.get("title") == ALERTS_TITLE and "pull_request" not in issue:
                 self._issue = issue["number"]
                 return self._issue
-        body = ("כאן הבוט כותב כל קנייה, כל מכירה וסיכום יומי.\n\n"
-                "GitHub שולח לך מייל והתראה באפליקציה על כל עדכון. אפשר להשתיק דרך כפתור Unsubscribe.\n\n"
+        body = ("כאן הבוט כותב סיכום אחד בסוף כל יום מסחר שהיו בו עסקאות.\n\n"
+                "GitHub שולח לך מייל אחד על כל סיכום. אפשר להשתיק דרך כפתור Unsubscribe.\n\n"
                 "המסחר הוא בחשבון דמו בלבד.")
         r = self.session.post(self._url("/issues"), json={"title": ALERTS_TITLE, "body": body}, timeout=20)
         r.raise_for_status()
@@ -207,10 +207,12 @@ class Reporter:
         entry = buy_prices(orders)
         buy_reasons, close_reasons = journal_reasons(self.journal.path)
 
-        lines = run_events(self.journal.entries)
+        # האירועים נאספים לאורך היום ונשלחים בהודעה אחת בסוף היום (מייל אחד ביום לכל היותר)
+        events = mem.setdefault("events", [])
+        events.extend(run_events(self.journal.entries))
         for o in filled_sells(orders):
             if o.get("id") not in mem["notified_orders"]:
-                lines.append(describe_exit(o, entry, close_reasons))
+                events.append(describe_exit(o, entry, close_reasons))
                 mem["notified_orders"].append(o.get("id"))
 
         account = self.alpaca.account()
@@ -222,15 +224,14 @@ class Reporter:
         end_of_day = state.minutes_to_close <= cfg["flatten_minutes_before_close"]
         buys_count = sum(1 for o in orders if o.get("side") == "buy" and o.get("status") == "filled")
         if end_of_day and not positions and not mem["summary_sent"]:
-            if buys_count:
-                lines += ["📊 **סיכום יום המסחר**"] + day_summary(daily_pl, filled_sells(orders), entry, buys_count)
+            if buys_count or events:  # ביום בלי עסקאות לא נשלחת הודעה בכלל
+                lines = day_summary(daily_pl, filled_sells(orders), entry, buys_count)
+                lines += ["**מה קרה היום:**"] + events
+                try:
+                    self.notifier.send(lines, f"📊 סיכום יום המסחר ({state.now:%d/%m})")
+                except Exception as e:
+                    self.journal.log("notify_error", error=str(e)[:300])
             mem["summary_sent"] = True
-
-        if lines:
-            try:
-                self.notifier.send(lines, f"🤖 עדכון מהבוט, {il_time(state.now)} שעון ישראל")
-            except Exception as e:
-                self.journal.log("notify_error", error=str(e)[:300])
         save_state(state_path, mem)
 
         try:
