@@ -1,10 +1,11 @@
 name: AI Trading Bot (Paper)
 
 on:
-  # כל 10 דקות, שני-שישי, בשעות שהשוק בארה"ב יכול להיות פתוח (שעון UTC).
+  # GitHub מפעיל הרצות מתוזמנות באיחור (בפועל בערך פעם בשעה), ולכן כל הרצה נשארת
+  # בחיים עד ~5.5 שעות ובודקת בעצמה כל 10 דקות עד סגירת השוק. ההרצה הבאה מחכה בתור וממשיכה.
   # הבוט עצמו בודק מול Alpaca אם השוק באמת פתוח, כך ששעון קיץ/חורף לא משנה.
   schedule:
-    - cron: "3-59/10 13-20 * * 1-5"
+    - cron: "7 13-20 * * 1-5"
   # הרצה ידנית מהטלפון: Actions -> AI Trading Bot -> Run workflow
   workflow_dispatch:
     inputs:
@@ -19,13 +20,14 @@ permissions:
   issues: write     # כדי לכתוב התראות ב-Issue "התראות בוט המסחר"
 
 concurrency:
-  group: trading-bot
+  # בדיקת חיבור לא מחכה בתור מאחורי יום מסחר שלם
+  group: trading-bot-${{ inputs.mode == 'check' && 'check' || 'trade' }}
   cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v5
 
@@ -43,9 +45,12 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           MODE: ${{ inputs.mode }}
+          EVENT: ${{ github.event_name }}
         run: |
           if [ "$MODE" = "check" ]; then
             python bot.py --check
+          elif [ "$EVENT" = "schedule" ]; then
+            python bot.py --loop-minutes 330 --every 10
           else
             python bot.py
           fi

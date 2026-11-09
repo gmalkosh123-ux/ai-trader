@@ -315,7 +315,8 @@ class Alpaca:
             "qty": str(buy.qty),
             "side": "buy",
             "type": "market",
-            "time_in_force": "day",
+            # gtc: אם הסגירה של סוף היום תתפספס, הסטופ-לוס והטייק-פרופיט נשארים בתוקף גם בלילה
+            "time_in_force": "gtc",
             "order_class": "bracket",
             "take_profit": {"limit_price": f"{buy.take_profit:.2f}"},
             "stop_loss": {"stop_price": f"{buy.stop_loss:.2f}"},
@@ -853,10 +854,90 @@ def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, no
     return 0 if ok else 1
 
 
+LOOP_SAFETY_SECONDS = 12 * 60  # הזמן המקסימלי שסבב אחד יכול לקחת (כולל ניסיונות חוזרים מול Gemini)
+
+
+def git_save(journal: Journal, root: Path = ROOT) -> None:
+    """שומר באמצע היום את היומן ואת דף המצב ב-GitHub, ומושך שינויים שעשית ב-config.json."""
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=90)
+
+    try:
+        git("config", "user.name", "trading-bot")
+        git("config", "user.email", "trading-bot@users.noreply.github.com")
+        git("add", "journal")
+        git("add", "STATUS.md")
+        if git("diff", "--cached", "--quiet").returncode != 0:
+            git("commit", "-q", "-m", f"journal: {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC")
+        pull = git("pull", "-q", "--rebase", "--autostash")
+        if pull.returncode != 0:
+            git("rebase", "--abort")
+            journal.log("git_error", step="pull", error=pull.stderr[-300:])
+            return
+        push = git("push", "-q")
+        if push.returncode != 0:
+            journal.log("git_error", step="push", error=push.stderr[-300:])
+    except Exception as e:  # שמירה שנכשלה לא עוצרת את המסחר
+        journal.log("git_error", error=str(e)[:300])
+
+
+def run_loop(cfg_path: Path, alpaca, classifier, journal: Journal, reporter, minutes: float, every: float,
+             save=lambda: None, sleep=time.sleep, clock=time.monotonic) -> int:
+    """רץ שוב ושוב, כל `every` דקות, עד שהשוק נסגר או שנגמר הזמן של ההרצה.
+
+    GitHub מפעיל הרצות מתוזמנות באיחור (בפועל בערך פעם בשעה), ולכן כל הרצה נשארת
+    בחיים ובודקת בעצמה. ההגדרות נטענות מחדש בכל סבב, כך ששינוי ב-config.json נקלט תוך דקות.
+    """
+    deadline = clock() + minutes * 60
+    code, cfg = 0, None
+    while True:
+        started = clock()
+        try:
+            cfg = load_config(cfg_path)
+        except (ConfigError, json.JSONDecodeError, OSError) as e:
+            if cfg is None:
+                journal.say(f"❌ בעיה בקובץ ההגדרות: {e}")
+                return 2
+            journal.say(f"⚠️ בעיה בקובץ ההגדרות ({e}). ממשיך עם ההגדרות הקודמות.")
+        journal.say(f"— סבב {datetime.now(timezone.utc):%H:%M} UTC —")
+        try:
+            code = run_once(cfg, alpaca, classifier, journal, reporter)
+            market = alpaca.clock()
+        except ApiError as e:
+            journal.log("error", error=str(e)[:500])
+            journal.say(f"❌ תקלה בתקשורת עם Alpaca: {str(e)[:200]}. מנסה שוב בסבב הבא.")
+            code, market = 1, {"is_open": True}
+        save()
+
+        remaining = deadline - clock()
+        if not market.get("is_open"):
+            try:
+                wait = (parse_ts(market["next_open"]) - parse_ts(market["timestamp"])).total_seconds() + 60
+            except (KeyError, TypeError, ValueError):
+                wait = math.inf
+            if wait > remaining - LOOP_SAFETY_SECONDS:
+                journal.say("השוק סגור עד אחרי סוף ההרצה הזו. מסיים.")
+                return code
+            sleep(wait)
+            continue
+        pause = max(every * 60 - (clock() - started), 0)
+        if remaining - pause < LOOP_SAFETY_SECONDS:
+            journal.say("נגמר הזמן של ההרצה הזו. ההרצה המתוזמנת הבאה ממשיכה מכאן.")
+            return code
+        sleep(pause)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="בוט מסחר AI — חשבון דמו")
     parser.add_argument("--check", action="store_true", help="בדיקת חיבור בלבד, בלי מסחר")
     parser.add_argument("--config", default=str(ROOT / "config.json"))
+    parser.add_argument("--loop-minutes", type=float, default=0,
+                        help="להישאר בחיים עד X דקות ולבדוק שוב ושוב (0 = הרצה אחת)")
+    parser.add_argument("--every", type=float, default=10, help="כל כמה דקות לבדוק במצב לולאה")
     args = parser.parse_args(argv)
 
     journal = Journal(ROOT / "journal")
@@ -882,6 +963,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             return check_connection(cfg, alpaca, classifier, journal, notifier)
         reporter = reporting.Reporter(alpaca, journal, notifier, ROOT)
+        if args.loop_minutes > 0:
+            return run_loop(Path(args.config), alpaca, classifier, journal, reporter, args.loop_minutes,
+                            args.every, save=lambda: git_save(journal))
         return run_once(cfg, alpaca, classifier, journal, reporter)
     except ApiError as e:
         journal.log("error", error=str(e)[:500])

@@ -372,6 +372,62 @@ class HttpAndAlpacaTests(unittest.TestCase):
         self.assertEqual(a.http.session.calls, [])
 
 
+class LoopAlpaca(FakeAlpaca):
+    """שוק שהמצב שלו (פתוח/סגור) משתנה לפי רשימה, קריאה אחרי קריאה."""
+
+    def __init__(self, opens, next_open="2026-11-10T09:30:00-05:00", **kw):
+        super().__init__(**kw)
+        self.opens, self.next_open, self.clock_calls = list(opens), next_open, 0
+
+    def clock(self):
+        self.is_open = self.opens[min(self.clock_calls, len(self.opens) - 1)]
+        self.clock_calls += 1
+        c = super().clock()
+        c["next_open"] = self.next_open
+        return c
+
+
+class LoopTests(unittest.TestCase):
+    def run_loop(self, alpaca, minutes, every=10):
+        t = [0.0]
+        sleeps, saves = [], []
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "config.json"
+            path.write_text(json.dumps(cfg()), encoding="utf-8")
+            code = bot.run_loop(path, alpaca, FakeAI(), bot.Journal(None), None, minutes, every,
+                                save=lambda: saves.append(t[0]),
+                                sleep=lambda s: (sleeps.append(s), t.__setitem__(0, t[0] + s)),
+                                clock=lambda: t[0])
+        return code, sleeps, saves
+
+    def test_stops_when_market_closes_for_the_day(self):
+        # סבב 1: פתוח, סבב 2: נסגר. הפתיחה הבאה מחר — מסיימים.
+        code, sleeps, saves = self.run_loop(LoopAlpaca([True, True, True, False]), minutes=330)
+        self.assertEqual(code, 0)
+        self.assertEqual(sleeps, [600])
+        self.assertEqual(len(saves), 2)
+
+    def test_stops_before_job_time_runs_out(self):
+        code, sleeps, saves = self.run_loop(LoopAlpaca([True]), minutes=30)
+        self.assertEqual(len(saves), 2)  # 0 ו-10 דקות. סבב שלישי לא היה מספיק להסתיים בזמן
+        self.assertEqual(sleeps, [600])
+
+    def test_waits_for_the_open_when_it_is_soon(self):
+        alpaca = LoopAlpaca([False, False, True, True, True, False], next_open="2026-11-09T11:30:00-05:00")
+        code, sleeps, saves = self.run_loop(alpaca, minutes=330)
+        self.assertAlmostEqual(sleeps[0], 30 * 60 + 60, delta=1)  # מחכה לפתיחה (עוד חצי שעה) ולא יוצא
+        self.assertEqual(sleeps[1], 600)  # ואז סוחר כרגיל כל 10 דקות
+        self.assertEqual(code, 0)
+
+    def test_bad_config_at_start_stops(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "config.json"
+            path.write_text("{not json", encoding="utf-8")
+            code = bot.run_loop(path, LoopAlpaca([True]), FakeAI(), bot.Journal(None), None, 60, 10,
+                                sleep=lambda s: None, clock=lambda: 0.0)
+        self.assertEqual(code, 2)
+
+
 class GeminiTests(unittest.TestCase):
     def test_falls_back_when_model_missing(self):
         g = bot.Gemini("key", "gemini-does-not-exist")
