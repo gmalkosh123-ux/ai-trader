@@ -611,6 +611,12 @@ def parse_signals(text: str, allowed: set[str]) -> list[Signal]:
     return out
 
 
+def is_busy(e: Exception) -> bool:
+    """עומס זמני אצל Google (לא בעיה במפתח)."""
+    status = getattr(e, "status", None)
+    return status == 429 or (status is not None and status >= 500)
+
+
 class Gemini:
     def __init__(self, api_key: str, model: str):
         self.http = Http({"x-goog-api-key": api_key, "Content-Type": "application/json"}, timeout=60, retries=2)
@@ -642,8 +648,8 @@ class Gemini:
                     text = self._call(model, user_text, with_schema)
                 except ApiError as e:
                     last = e
-                    if e.status == 404:
-                        break  # מודל לא קיים — ננסה את הבא
+                    if e.status == 404 or is_busy(e):
+                        break  # מודל לא קיים או עמוס — ננסה את הבא
                     if e.status == 400 and with_schema:
                         continue  # ננסה בלי סכמה
                     raise
@@ -834,8 +840,12 @@ def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, no
                     + (f"כיוון {sig[0].sentiment:+.2f}, ביטחון {sig[0].confidence:.2f} — {sig[0].reason}"
                        if sig else "תשובה ריקה (תקין, אבל כדאי לבדוק)"))
     except Exception as e:
-        ok = False
-        journal.say(f"❌ Gemini לא עונה: {str(e)[:200]} — בדוק את GEMINI_API_KEY.")
+        if is_busy(e):
+            journal.say("⚠️ המפתח של Gemini נקלט, אבל השרתים של Google עמוסים כרגע. "
+                        "זה זמני — הבוט פשוט לא יפתח עסקאות עד שיענו.")
+        else:
+            ok = False
+            journal.say(f"❌ Gemini לא עונה: {str(e)[:200]} — בדוק את GEMINI_API_KEY.")
     journal.say(f"הגדרות: תקרה {usd(cfg['max_total_capital_usd'])}, עד {usd(cfg['max_position_usd'])} לעסקה, "
                 f"סטופ-לוס {cfg['stop_loss_pct']}%, טייק-פרופיט {cfg['take_profit_pct']}%, "
                 f"הפסד יומי מקסימלי {usd(cfg['daily_max_loss_usd'])}.")

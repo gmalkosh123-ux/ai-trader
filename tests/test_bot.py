@@ -391,6 +391,35 @@ class GeminiTests(unittest.TestCase):
         self.assertEqual(g.used_model, bot.FALLBACK_MODELS[0])
         self.assertEqual(calls[0], ("gemini-does-not-exist", True))
 
+    def test_falls_back_when_model_busy(self):
+        g = bot.Gemini("key", "busy-model")
+        calls = []
+
+        def fake_call(model, text, with_schema):
+            calls.append(model)
+            if model == "busy-model":
+                raise bot.ApiError("high demand", 503)
+            return '{"signals":[{"symbol":"AAPL","sentiment":0.5,"confidence":0.5,"reason_he":"ok"}]}'
+
+        g._call = fake_call
+        self.assertEqual(len(g.classify({"AAPL": []}, datetime.now(timezone.utc))), 1)
+        self.assertEqual(calls, ["busy-model", bot.FALLBACK_MODELS[0]])
+
+    def test_bad_key_is_not_retried_on_other_models(self):
+        g = bot.Gemini("key", "m")
+        calls = []
+
+        def fake_call(model, text, with_schema):
+            calls.append(model)
+            raise bot.ApiError("API key not valid", 403)
+
+        g._call = fake_call
+        with self.assertRaises(bot.ApiError):
+            g.classify({"AAPL": []}, datetime.now(timezone.utc))
+        self.assertEqual(calls, ["m"])
+        self.assertTrue(bot.is_busy(bot.ApiError("x", 503)))
+        self.assertFalse(bot.is_busy(bot.ApiError("x", 403)))
+
     def test_request_body_shape(self):
         g = bot.Gemini("key", "m")
         captured = {}
