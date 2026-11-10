@@ -1,0 +1,2 @@
+{"time": "2026-11-10T14:31:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 389}
+{"time": "2026-11-10T14:32:20+00:00", "kind": "ai_error", "error": "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent: תקלת רשת: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=60)"}
