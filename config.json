@@ -22,7 +22,7 @@
     "gemini_model": "שם מודל ה-AI של Google. אם הוא לא קיים, הבוט מנסה אוטומטית מודלים אחרים."
   },
 
-  "watchlist": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD", "NFLX", "JPM"],
+  "watchlist": ["NVDA", "PLTR", "INTC", "NFLX", "UBER", "HOOD", "SOFI", "SMCI", "DIS", "BAC"],
 
   "max_total_capital_usd": 1000,
   "max_position_usd": 250,

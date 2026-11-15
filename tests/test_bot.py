@@ -96,7 +96,7 @@ class ConfigTests(unittest.TestCase):
     def test_shipped_config_is_valid(self):
         c = bot.load_config(Path(bot.ROOT / "config.json"))
         self.assertEqual(c["max_total_capital_usd"], 1000)
-        self.assertIn("AAPL", c["watchlist"])
+        self.assertIn("NVDA", c["watchlist"])
 
     def test_rejects_out_of_range(self):
         with self.assertRaises(bot.ConfigError):
