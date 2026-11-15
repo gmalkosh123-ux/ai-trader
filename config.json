@@ -21,32 +21,56 @@
     "dry_run": "true = הבוט רק כותב מה היה עושה, בלי לשלוח פקודות.",
     "gemini_model": "שם מודל ה-AI של Google. אם הוא לא קיים, הבוט מנסה אוטומטית מודלים אחרים."
   },
-
-  "watchlist": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD", "NFLX", "JPM"],
-
+  "watchlist": [
+    "NVDA",
+    "NFLX",
+    "AMZN",
+    "INTC",
+    "PLTR",
+    "UBER",
+    "BAC",
+    "SOFI",
+    "F",
+    "HOOD",
+    "RIVN",
+    "SNAP",
+    "MU",
+    "SMCI",
+    "DIS",
+    "NKE",
+    "PFE",
+    "CSCO",
+    "WMT",
+    "XOM",
+    "AAL",
+    "T",
+    "KO",
+    "CCL",
+    "GOOGL",
+    "TSLA",
+    "META",
+    "MSFT",
+    "JPM",
+    "AAPL",
+    "AMD"
+  ],
   "max_total_capital_usd": 1000,
   "max_position_usd": 250,
   "max_open_positions": 4,
-
   "stop_loss_pct": 1.5,
   "take_profit_pct": 3.0,
   "daily_max_loss_usd": 50,
   "max_new_trades_per_day": 6,
-
   "buy_sentiment_threshold": 0.6,
   "min_confidence": 0.7,
   "exit_sentiment_threshold": -0.3,
-
   "news_lookback_minutes": 120,
   "max_headlines_per_symbol": 8,
-
   "no_new_trades_first_minutes": 15,
   "no_new_trades_last_minutes": 60,
   "flatten_minutes_before_close": 30,
-
   "new_trades_enabled": true,
   "close_everything_now": false,
   "dry_run": false,
-
   "gemini_model": "gemini-3.8-flash"
 }
