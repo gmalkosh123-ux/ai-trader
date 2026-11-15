@@ -50,9 +50,7 @@
     "TSLA",
     "META",
     "MSFT",
-    "JPM",
-    "AAPL",
-    "AMD"
+    "JPM"
   ],
   "max_total_capital_usd": 1000,
   "max_position_usd": 250,
