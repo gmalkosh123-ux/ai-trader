@@ -613,14 +613,17 @@ def parse_signals(text: str, allowed: set[str]) -> list[Signal]:
 
 
 def is_busy(e: Exception) -> bool:
-    """עומס זמני אצל Google (לא בעיה במפתח)."""
+    """תקלה זמנית אצל Google — עומס או חוסר תשובה בזמן (לא בעיה במפתח)."""
+    if not isinstance(e, ApiError):
+        return False
     status = getattr(e, "status", None)
-    return status == 429 or (status is not None and status >= 500)
+    return status is None or status == 429 or status >= 500
 
 
 class Gemini:
     def __init__(self, api_key: str, model: str):
-        self.http = Http({"x-goog-api-key": api_key, "Content-Type": "application/json"}, timeout=60, retries=2)
+        # ניסיון חוזר אחד בלבד לכל מודל: אם מודל תקוע, עדיף לעבור מהר למודל הבא
+        self.http = Http({"x-goog-api-key": api_key, "Content-Type": "application/json"}, timeout=60, retries=1)
         self.models = [model] + [m for m in FALLBACK_MODELS if m != model]
         self.used_model: str | None = None
 

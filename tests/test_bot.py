@@ -474,6 +474,8 @@ class GeminiTests(unittest.TestCase):
             g.classify({"AAPL": []}, datetime.now(timezone.utc))
         self.assertEqual(calls, ["m"])
         self.assertTrue(bot.is_busy(bot.ApiError("x", 503)))
+        self.assertTrue(bot.is_busy(bot.ApiError("timeout")))  # תקלת רשת / timeout — עוברים למודל הבא
+        self.assertFalse(bot.is_busy(ValueError("x")))
         self.assertFalse(bot.is_busy(bot.ApiError("x", 403)))
 
     def test_request_body_shape(self):
