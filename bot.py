@@ -834,6 +834,15 @@ def check_connection(cfg: dict, alpaca: Alpaca, classifier, journal: Journal, no
                     f"שווי: {usd(float(a.get('equity', 0)))}")
         c = alpaca.clock()
         journal.say(f"✅ שעון השוק: {'פתוח' if c.get('is_open') else 'סגור'} (פתיחה הבאה: {c.get('next_open')})")
+        try:  # מניה שיקרה מהגבול לעסקה — הבוט לא יוכל לקנות ממנה אפילו אחת
+            prices = alpaca.latest_prices(cfg["watchlist"])
+            too_expensive = [s for s in cfg["watchlist"] if prices.get(s, 0) > cfg["max_position_usd"]]
+            journal.say("מחירים: " + ", ".join(f"{s} {usd(prices[s])}" for s in cfg["watchlist"] if s in prices))
+            if too_expensive:
+                journal.say(f"⚠️ יקרות מהגבול לעסקה ({usd(cfg['max_position_usd'])}), הבוט לא יוכל לקנות אותן: "
+                            + ", ".join(too_expensive))
+        except Exception as e:
+            journal.say(f"⚠️ לא הצלחתי לבדוק מחירים: {str(e)[:120]}")
     except Exception as e:
         ok = False
         journal.say(f"❌ Alpaca לא מתחבר: {str(e)[:200]} — בדוק את ALPACA_API_KEY ו-ALPACA_SECRET_KEY.")
