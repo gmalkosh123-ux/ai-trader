@@ -51,3 +51,5 @@
 {"time": "2026-11-17T18:41:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 139}
 {"time": "2026-11-17T18:51:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 129}
 {"time": "2026-11-17T19:01:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 119}
+{"time": "2026-11-17T19:11:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 109}
+{"time": "2026-11-17T19:11:25+00:00", "kind": "signal", "symbol": "BAC", "sentiment": 0.0, "confidence": 0.1, "reason": "פרסום דוח עסקי שגרתי ללא משמעות מהותית מיידית לשער המניה.", "headlines": ["Bank of America Releases 2026 Business Owner Report"], "model": "gemini-3.5-flash-lite"}
