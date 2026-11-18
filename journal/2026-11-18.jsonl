@@ -51,3 +51,5 @@
 {"time": "2026-11-18T18:41:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 139}
 {"time": "2026-11-18T18:51:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 129}
 {"time": "2026-11-18T19:01:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 119}
+{"time": "2026-11-18T19:11:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 109}
+{"time": "2026-11-18T19:14:51+00:00", "kind": "ai_error", "error": "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent -> 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"}
