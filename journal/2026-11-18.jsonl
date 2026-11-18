@@ -20,3 +20,4 @@
 {"time": "2026-11-18T15:31:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 329}
 {"time": "2026-11-18T15:41:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 319}
 {"time": "2026-11-18T15:51:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 309}
+{"time": "2026-11-18T16:01:01+00:00", "kind": "run", "equity": 100000.0, "daily_pl": 0.0, "cash": 100000.0, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 299}
