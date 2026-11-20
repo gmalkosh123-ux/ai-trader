@@ -4,3 +4,4 @@
 {"time": "2026-11-20T14:32:13+00:00", "kind": "signal", "symbol": "DIS", "sentiment": -0.2, "confidence": 0.4, "reason": "ויתור על זכויות שידור למונדיאל מצביע על משמעות תקציבית אך ההשפעה לטווח הקצר מוגבלת.", "headlines": ["Disney Declines to Bid for 2030 and 2034 World Cup Broadcast Rights"], "model": "gemini-3.5-flash-lite"}
 {"time": "2026-11-20T14:41:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 379}
 {"time": "2026-11-20T14:51:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 369}
+{"time": "2026-11-20T15:01:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 359}
