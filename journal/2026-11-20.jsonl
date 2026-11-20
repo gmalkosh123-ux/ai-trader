@@ -70,3 +70,4 @@
 {"time": "2026-11-20T18:01:40+00:00", "kind": "signal", "symbol": "HOOD", "sentiment": -0.1, "confidence": 0.2, "reason": "הצעת בעלי מניות לבחינת פלטפורמת ההצבעות היא בעלת השפעה מסחרית זניחה בטווח הקצר.", "headlines": ["Robinhood Markets Faces Shareholder Proposal Regarding Proxy Voting Platform"], "model": "gemini-3.6-flash"}
 {"time": "2026-11-20T18:11:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 169}
 {"time": "2026-11-20T18:21:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 159}
+{"time": "2026-11-20T18:31:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 149}
