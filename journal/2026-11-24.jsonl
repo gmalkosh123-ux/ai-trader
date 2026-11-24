@@ -69,3 +69,4 @@
 {"time": "2026-11-24T18:11:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 169}
 {"time": "2026-11-24T18:21:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 159}
 {"time": "2026-11-24T18:31:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 149}
+{"time": "2026-11-24T18:41:01+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 139}
