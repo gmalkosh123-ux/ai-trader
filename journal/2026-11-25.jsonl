@@ -55,3 +55,4 @@
 {"time": "2026-11-25T17:51:03+00:00", "kind": "signal", "symbol": "DIS", "sentiment": 0.0, "confidence": 0.1, "reason": "מיתוג מחדש של ערוץ דיסני בגרמניה הינו שינוי שולי וחסר השפעה מהותית על מחיר המניה.", "headlines": ["Disney Channel in Germany Rebrands to Disney TV"], "model": "gemini-3.8-flash"}
 {"time": "2026-11-25T18:01:00+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 179}
 {"time": "2026-11-25T18:01:04+00:00", "kind": "signal", "symbol": "DIS", "sentiment": 0.0, "confidence": 0.1, "reason": "מיתוג מחדש של ערוץ מקומי בגרמניה הוא אירוע שגרתי וחסר השפעה מהותית על המניה.", "headlines": ["Disney Channel in Germany Rebrands to Disney TV"], "model": "gemini-3.8-flash"}
+{"time": "2026-11-25T18:11:00+00:00", "kind": "run", "equity": 99999.44, "daily_pl": 0.0, "cash": 99999.44, "exposure": 0, "positions": [], "trades_today": 0, "minutes_to_close": 169}
